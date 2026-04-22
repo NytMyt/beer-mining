@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍺 BEER Mining - Đào Token Trên Web</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #11998e;
+            --danger: #eb3349;
+            --warning: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: clamp(1.5em, 5vw, 3em);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: clamp(0.9em, 3vw, 1.2em);
+            opacity: 0.95;
+            margin-bottom: 5px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+        }
+
+        .card-title {
+            color: var(--primary);
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: clamp(1.2em, 4vw, 2.2em);
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-unit {
+            font-size: 0.75em;
+            opacity: 0.85;
+            margin-top: 5px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #38ef7d);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #f45c43);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-mining {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.9em;
+            color: #0c5aa0;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .wallet-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .wallet-info p {
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+
+        .address-display {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-size: 0.8em;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #ddd;
+            margin-top: 5px;
+        }
+
+        .mining-log {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #333;
+        }
+
+        .log-entry {
+            margin: 3px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .log-success {
+            color: #00ff00;
+        }
+
+        .log-error {
+            color: #ff4444;
+        }
+
+        .log-warning {
+            color: #ffaa00;
+        }
+
+        .log-info {
+            color: #00aaff;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .mining-stats-detailed {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .mini-stat {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        .mini-stat-label {
+            font-size: 0.75em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .mini-stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .mining-address-box {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .mining-address-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .mining-address-value {
+            font-size: 0.85em;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            background: rgba(0,0,0,0.2);
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .claim-progress-section {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--success);
+            margin-bottom: 15px;
+        }
+
+        .claim-progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .claim-progress-header .label {
+            color: var(--dark);
+        }
+
+        .claim-progress-header .value {
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #ddd;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid var(--primary);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .claim-requirement {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--dark);
+        }
+
+        .claim-requirement.reached {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .claim-requirement.not-reached {
+            color: var(--warning);
+        }
+
+        .wallet-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .wallet-hint {
+            background: #fff7e6;
+            border-left: 4px solid var(--warning);
+            color: #7a5901;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .wallet-mode {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .wallet-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ====== MINER HISTORY ====== */
+        .miner-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .miner-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8f9ff;
+            border: 1px solid #e0e4ff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: background 0.2s;
+        }
+
+        .miner-item:hover {
+            background: #eef0ff;
+        }
+
+        .miner-item.new-entry {
+            animation: flashNew 1.5s ease;
+        }
+
+        @keyframes flashNew {
+            0%   { background: #d4f8e8; border-color: #11998e; }
+            100% { background: #f8f9ff; border-color: #e0e4ff; }
+        }
+
+        .miner-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .miner-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .miner-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--dark);
+            word-break: break-all;
+        }
+
+        .miner-meta {
+            font-size: 0.78em;
+            color: #777;
+            margin-top: 3px;
+        }
+
+        .miner-stats {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .miner-blocks {
+            font-size: 1.05em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .miner-reward {
+            font-size: 0.78em;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .miner-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        .badge-you {
+            background: #ffe0b2;
+            color: #bf360c;
+        }
+
+        .badge-new {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+
+        .miner-empty {
+            text-align: center;
+            color: #aaa;
+            padding: 30px 0;
+            font-size: 0.95em;
+        }
+
+        .miner-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .miner-count-badge {
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.82em;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🍺 BEER Token Mining</h1>
+            <p>Phi tập trung & minh bạch - Đào trên web của bạn</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Polygon Network | Hoàn toàn minh bạch</p>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="grid-2">
+            <!-- LEFT: WALLET & CONTROL -->
+            <div class="card">
+                <div class="card-title">💼 Ví & Kiểm Soát</div>
+
+                <div id="walletStatus" class="status-badge status-disconnected">
+                    ❌ Chưa kết nối
+                </div>
+
+                <div id="successMsg" class="success-message"></div>
+                <div id="errorMsg" class="error-message"></div>
+
+                <div class="wallet-buttons">
+                    <button id="connectMetaMaskBtn" class="btn btn-primary btn-block" onclick="connectMetaMask()">
+                        <span>🦊</span> Kết Nối MetaMask
+                    </button>
+                    <button id="connectPhantomBtn" class="btn btn-primary btn-block" onclick="connectPhantomWallet()">
+                        <span>👻</span> Kết Nối Phantom
+                    </button>
+                </div>
+
+                <div class="wallet-hint" id="walletHint">
+                    MetaMask và Phantom EVM có thể claim BEER trên Polygon. Phantom Solana chỉ dùng để kết nối ví và đào cục bộ, không claim on-chain được.
+                </div>
+
+                <div id="walletInfo" class="wallet-info">
+                    <p><strong>📍 Wallet Address:</strong></p>
+                    <div class="address-display" id="walletAddress">-</div>
+                    <p style="margin-top: 10px;"><strong>⛓️ Network:</strong> <span id="networkName">-</span></p>
+                    <p><strong>🔌 Wallet Type:</strong> <span id="walletType">-</span></p>
+                    <p><strong>💰 MATIC Balance:</strong> <span id="maticBalance">-</span></p>
+                    <p><strong>🍺 BEER Balance:</strong> <span id="beerBalance">0 BEER</span></p>
+                    <p class="wallet-mode"><strong>Claim Mode:</strong> <span id="claimMode">-</span></p>
+                </div>
+
+                <div id="miningControls" style="display: none;">
+                    <!-- Mining Address Display -->
+                    <div class="mining-address-box">
+                        <div class="mining-address-label">⛏️ Mining Address (Ví Đào):</div>
+                        <div class="mining-address-value" id="miningAddress">-</div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="number" id="threadCount" min="1" max="16" value="4" placeholder="CPU Threads">
+                    </div>
+
+                    <div class="controls">
+                        <button id="startBtn" class="btn btn-success" onclick="startMining()">
+                            <span>⛏️</span> Bắt Đầu
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger hidden" onclick="stopMining()">
+                            <span>⛔</span> Dừng
+                        </button>
+                    </div>
+
+                    <!-- Claim Progress Section -->
+                    <div class="claim-progress-section">
+                        <div class="claim-progress-header">
+                            <span class="label">� On-chain Rewards:</span>
+                            <span class="value"><span id="currentReward">0</span> BEER</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="claimProgressBar" style="width: 0%;"></div>
+                        </div>
+                        <div class="claim-requirement not-reached" id="claimRequirement">
+                            ⏳ Chưa có rewards on-chain
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        💡 Khi đào, trình duyệt sẽ sử dụng CPU để tìm blocks. Độ khó cao nhưng mọi người đều có thể đào trên điện thoại.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: STATISTICS -->
+            <div class="card">
+                <div class="card-title">📊 Thống Kê Đào</div>
+
+                <div class="grid-4">
+                    <div class="stat-card">
+                        <div class="stat-label">Hash Rate</div>
+                        <div class="stat-value" id="hashRate">0</div>
+                        <div class="stat-unit">H/s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Blocks</div>
+                        <div class="stat-value" id="blocksFound">0</div>
+                        <div class="stat-unit">found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Local Rewards</div>
+                        <div class="stat-value" id="localRewardAmount">0</div>
+                        <div class="stat-unit">BEER</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">On-chain Claimable</div>
+                        <div class="stat-value" id="onChainRewardAmount">0</div>
+                        <div class="stat-unit">BEER</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-value" id="uptime">0m</div>
+                        <div class="stat-unit">00s</div>
+                    </div>
+                </div>
+
+                <div class="mining-stats-detailed">
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Local Mining Rewards</div>
+                        <div class="mini-stat-value" id="localRewardDetail">0.00</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">On-chain Claimable</div>
+                        <div class="mini-stat-value" id="onChainRewardDetail">0.00</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Submitted Proofs</div>
+                        <div class="mini-stat-value" id="submittedProofs">0</div>
+                    </div>
+                </div>
+
+                <button id="claimBtn" class="btn btn-success btn-block hidden" onclick="claimRewards()">
+                    <span>💰</span> Claim Rewards
+                </button>
+
+                <div class="mining-stats-detailed">
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Total Hashes</div>
+                        <div class="mini-stat-value" id="totalHashes">0</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Difficulty</div>
+                        <div class="mini-stat-value">1e15</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Network</div>
+                        <div class="mini-stat-value">Poly</div>
+                    </div>
+                </div>
+
+                <div class="mining-log" id="miningLog">
+                    <div class="log-entry log-warning">[SYSTEM] 🚀 Hệ thống sẵn sàng. Bấm "Kết Nối MetaMask" để bắt đầu.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POOL STATISTICS -->
+        <div class="card">
+            <div class="card-title">⛓️ Thống Kê Pool</div>
+            <div class="grid-4">
+                <div class="stat-card">
+                    <div class="stat-label">Current Block</div>
+                    <div class="stat-value" id="poolBlock">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Miners</div>
+                    <div class="stat-value" id="poolMiners">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Blocks</div>
+                    <div class="stat-value" id="poolTotalBlocks">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Rewards</div>
+                    <div class="stat-value" id="poolRewards">-</div>
+                    <div class="stat-unit">BEER</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MINER HISTORY -->
+        <div class="card">
+            <div class="miner-toolbar">
+                <div class="card-title" style="margin-bottom:0; border:none; padding:0;">&#x1f465; Danh Sách Người Đào</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="miner-count-badge" id="minerCountBadge">0 thợ</span>
+                    <button class="btn btn-sm" style="background:#eef;color:var(--primary);border:1px solid var(--primary);" onclick="refreshMinerHistory()">🔄 Làm mới</button>
+                    <button class="btn btn-sm" style="background:#fee;color:var(--danger);border:1px solid var(--danger);" onclick="clearLocalMinerHistory()">🗑️ Xóa local</button>
+                </div>
+            </div>
+            <p style="font-size:0.82em;color:#888;margin-bottom:12px;">Lưu trữ cục bộ + cập nhật tự động. Dấu ★ = chính bạn. Thời gian tính theo giờ địa phương.</p>
+            <div class="miner-list" id="minerList">
+                <div class="miner-empty">⏳ Chưa có dữ liệu. Hãy đào hoặc ấn "🔄 Làm mới" để tải lịch sử từ chain.</div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>🍺 BEER Token - Phi tập trung & Minh bạch | <strong>Mining Pool:</strong> 0xae76a5E921A710C9523445Caeed5060D4d9b2ddE</p>
+            <p style="margin-top: 10px; font-size: 0.85em;">⚠️ Luôn xác minh contract trên <a href="https://polygonscan.com" style="color: white; text-decoration: underline;">PolygonScan</a> trước khi claim</p>
+        </div>
+    </div>
+
+    <script>
+        // ====== CONFIGURATION ======
+        const CONFIG = {
+            tokenAddress: "0xFB36aC3c58d10a2393CEef471C5a15E438e0787d",
+            poolAddress: "0xae76a5E921A710C9523445Caeed5060D4d9b2ddE",
+            rpcUrl: "https://polygon-rpc.com",
+            chainId: 137,
+            difficultyTarget: 1000000000000000,
+            rewardPerBlock: 100,
+        };
+
+        const MINING_POOL_ABI = [
+            {
+                inputs: [
+                    { internalType: 'uint256', name: 'nonce', type: 'uint256' },
+                    { internalType: 'string', name: 'minerAddress', type: 'string' },
+                    { internalType: 'uint256', name: 'hashRate', type: 'uint256' },
+                ],
+                name: 'submitMiningProof',
+                outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [],
+                name: 'claimRewards',
+                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [{ internalType: 'address', name: 'miner', type: 'address' }],
+                name: 'getPendingRewards',
+                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [],
+                name: 'getPoolStats',
+                outputs: [{ internalType: 'uint256[]', name: '', type: 'uint256[]' }],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [],
+                name: 'getMiningHistoryLength',
+                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [{ internalType: 'uint256', name: 'index', type: 'uint256' }],
+                name: 'getMiningRecord',
+                outputs: [
+                    {
+                        components: [
+                            { internalType: 'address', name: 'miner', type: 'address' },
+                            { internalType: 'uint256', name: 'blockNumber', type: 'uint256' },
+                            { internalType: 'uint256', name: 'hashRate', type: 'uint256' },
+                            { internalType: 'uint256', name: 'reward', type: 'uint256' },
+                            { internalType: 'uint256', name: 'timestamp', type: 'uint256' },
+                        ],
+                        internalType: 'struct BEERMiningPool.MiningRecord',
+                        name: '',
+                        type: 'tuple',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [{ internalType: 'address', name: 'miner', type: 'address' }],
+                name: 'getMinerShares',
+                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+                stateMutability: 'view',
+                type: 'function',
+            },
+        ];
+
+        const BEER_TOKEN_ABI = [
+            {
+                inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
+                name: 'balanceOf',
+                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+                stateMutability: 'view',
+                type: 'function',
+            },
+        ];
+
+        // ====== GLOBAL STATE ======
+        let wallet = {
+            address: null,
+            provider: null,
+            connected: false,
+            providerType: null,
+            networkLabel: null,
+            canClaim: false,
+            pendingRewards: 0,
+        };
+
+        let mining = {
+            active: false,
+            threads: 0,
+            totalHashes: 0n,
+            blocksFound: 0,
+            localRewards: 0,
+            submittedProofs: 0,
+            proofSubmissionInFlight: false,
+            startTime: null,
+            hashRate: 0,
+            lastUpdate: Date.now(),
+        };
+
+        let workers = [];
+
+        // ====== MINER HISTORY STATE ======
+        // Loaded from localStorage, keyed by wallet address (lowercase)
+        // { address: { blocks, reward, lastSeen, firstSeen, source } }
+        const MINER_STORAGE_KEY = 'beer_miner_history_v1';
+        let minerRegistry = JSON.parse(localStorage.getItem(MINER_STORAGE_KEY) || '{}');
+
+        function saveMinerRegistry() {
+            try { localStorage.setItem(MINER_STORAGE_KEY, JSON.stringify(minerRegistry)); } catch (_) {}
+        }
+
+        function recordMiner(address, blocks, rewardBeer, timestamp, source) {
+            if (!address) return;
+            const addr = address.toLowerCase();
+            const ts = timestamp ? Number(timestamp) * 1000 : Date.now();
+            if (!minerRegistry[addr]) {
+                minerRegistry[addr] = { blocks: 0, reward: 0, lastSeen: ts, firstSeen: ts, source };
+            }
+            const entry = minerRegistry[addr];
+            if (Number(blocks || 0) > entry.blocks) entry.blocks = Number(blocks);
+            if (Number(rewardBeer || 0) > entry.reward) entry.reward = Number(rewardBeer);
+            if (ts > entry.lastSeen) entry.lastSeen = ts;
+            if (ts < entry.firstSeen) entry.firstSeen = ts;
+            entry.source = source;
+            saveMinerRegistry();
+        }
+
+        function renderMinerHistory() {
+            const list = document.getElementById('minerList');
+            const entries = Object.entries(minerRegistry)
+                .sort((a, b) => b[1].lastSeen - a[1].lastSeen);
+
+            document.getElementById('minerCountBadge').textContent = `${entries.length} thợ`;
+
+            if (entries.length === 0) {
+                list.innerHTML = '<div class="miner-empty">⏳ Chưa có dữ liệu. Hãy đào hoặc ấn "🔄 Làm mới" để tải lịch sử từ chain.</div>';
+                return;
+            }
+
+            const myAddr = (wallet.address || '').toLowerCase();
+            list.innerHTML = entries.map(([addr, data], idx) => {
+                const isMe = addr === myAddr;
+                const shortAddr = addr.slice(0, 6) + '...' + addr.slice(-4);
+                const avatarLetter = addr.slice(2, 4).toUpperCase();
+                const lastSeenStr = timeAgo(data.lastSeen);
+                const firstSeenStr = new Date(data.firstSeen).toLocaleDateString('vi-VN');
+                const badgeMe = isMe ? '<span class="miner-badge badge-you">★ Bạn</span>' : '';
+                const isNew = (Date.now() - data.lastSeen) < 60000;
+                const badgeNew = isNew && !isMe ? '<span class="miner-badge badge-new">• Mới</span>' : '';
+                const sourceIcon = data.source === 'chain' ? '⛓️' : '💻';
+                return `
+                <div class="miner-item ${isNew ? 'new-entry' : ''}" title="${addr}">
+                    <div class="miner-avatar">${avatarLetter}</div>
+                    <div class="miner-info">
+                        <div class="miner-address">${shortAddr}${badgeMe}${badgeNew}</div>
+                        <div class="miner-meta">${sourceIcon} Lần đầu: ${firstSeenStr} &nbsp;•&nbsp; Lần cuối: ${lastSeenStr}</div>
+                    </div>
+                    <div class="miner-stats">
+                        <div class="miner-blocks">${data.blocks} block</div>
+                        <div class="miner-reward">${formatBeerAmount(data.reward)} BEER</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function timeAgo(ts) {
+            const diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 60) return `${diff}s trước`;
+            if (diff < 3600) return `${Math.floor(diff/60)}ph trước`;
+            if (diff < 86400) return `${Math.floor(diff/3600)}h trước`;
+            return `${Math.floor(diff/86400)}ng trước`;
+        }
+
+        async function refreshMinerHistory() {
+            try {
+                const poolContract = getPoolContract(getReadOnlyWeb3());
+                const length = await poolContract.methods.getMiningHistoryLength().call();
+                const total = Number(length);
+                if (total === 0) { renderMinerHistory(); return; }
+                // Read last 50 records to avoid too many RPC calls
+                const start = Math.max(0, total - 50);
+                const calls = [];
+                for (let i = start; i < total; i++) {
+                    calls.push(poolContract.methods.getMiningRecord(i).call());
+                }
+                const records = await Promise.all(calls);
+                records.forEach(r => {
+                    recordMiner(r.miner, r.blockNumber, weiToBeer(r.reward), r.timestamp, 'chain');
+                });
+            } catch (_) {
+                // Old contract without getMiningHistoryLength — show local only
+            }
+            renderMinerHistory();
+        }
+
+        function clearLocalMinerHistory() {
+            if (!confirm('Đặt lại toàn bộ lịch sử local?')) return;
+            minerRegistry = {};
+            saveMinerRegistry();
+            renderMinerHistory();
+        }
+
+        // ====== UTILITY FUNCTIONS ======
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('miningLog');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${time}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function showMessage(message, type = 'success') {
+            const el = document.getElementById(`${type}Msg`);
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 5000);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(0);
+        }
+
+        function formatBeerAmount(value) {
+            return Number(value || 0).toFixed(2);
+        }
+
+        function weiToBeer(value) {
+            return Number(Web3.utils.fromWei(String(value), 'ether'));
+        }
+
+        function getReadOnlyWeb3() {
+            return wallet.provider || new Web3(CONFIG.rpcUrl);
+        }
+
+        function getPoolContract(web3Instance) {
+            return new web3Instance.eth.Contract(MINING_POOL_ABI, CONFIG.poolAddress);
+        }
+
+        function getBeerTokenContract(web3Instance) {
+            return new web3Instance.eth.Contract(BEER_TOKEN_ABI, CONFIG.tokenAddress);
+        }
+
+        function getMetaMaskProvider() {
+            if (!window.ethereum) {
+                return null;
+            }
+
+            if (Array.isArray(window.ethereum.providers)) {
+                return window.ethereum.providers.find((provider) => provider.isMetaMask) || null;
+            }
+
+            return window.ethereum.isMetaMask ? window.ethereum : null;
+        }
+
+        function getPhantomEthereumProvider() {
+            if (window.phantom && window.phantom.ethereum && window.phantom.ethereum.isPhantom) {
+                return window.phantom.ethereum;
+            }
+
+            if (window.ethereum && Array.isArray(window.ethereum.providers)) {
+                return window.ethereum.providers.find((provider) => provider.isPhantom) || null;
+            }
+
+            return window.ethereum && window.ethereum.isPhantom ? window.ethereum : null;
+        }
+
+        function getPhantomSolanaProvider() {
+            if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
+                return window.phantom.solana;
+            }
+
+            return null;
+        }
+
+        async function switchToPolygon(provider) {
+            const chainId = await provider.request({ method: 'eth_chainId' });
+            if (parseInt(chainId, 16) === CONFIG.chainId || parseInt(chainId, 10) === CONFIG.chainId) {
+                return;
+            }
+
+            try {
+                await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x89' }],
+                });
+            } catch (error) {
+                if (error.code === 4902) {
+                    await provider.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x89',
+                            chainName: 'Polygon Mainnet',
+                            nativeCurrency: {
+                                name: 'MATIC',
+                                symbol: 'MATIC',
+                                decimals: 18,
+                            },
+                            rpcUrls: [CONFIG.rpcUrl],
+                            blockExplorerUrls: ['https://polygonscan.com'],
+                        }],
+                    });
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        function renderConnectedWallet() {
+            document.getElementById('walletStatus').className = 'status-badge status-connected';
+            document.getElementById('walletStatus').textContent = `✅ Đã kết nối ${wallet.providerType}`;
+            document.getElementById('connectMetaMaskBtn').style.display = 'none';
+            document.getElementById('connectPhantomBtn').style.display = 'none';
+            document.getElementById('walletInfo').style.display = 'block';
+            document.getElementById('miningControls').style.display = 'block';
+            document.getElementById('walletAddress').textContent = wallet.address;
+            document.getElementById('miningAddress').textContent = wallet.address;
+            document.getElementById('networkName').textContent = wallet.networkLabel || '-';
+            document.getElementById('walletType').textContent = wallet.providerType || '-';
+            document.getElementById('claimMode').textContent = wallet.canClaim ? 'Có thể claim trên Polygon' : 'Chỉ mining cục bộ';
+        }
+
+        function resetWalletUI() {
+            wallet.address = null;
+            wallet.provider = null;
+            wallet.connected = false;
+            wallet.providerType = null;
+            wallet.networkLabel = null;
+            wallet.canClaim = false;
+            wallet.pendingRewards = 0;
+
+            document.getElementById('walletStatus').className = 'status-badge status-disconnected';
+            document.getElementById('walletStatus').textContent = '❌ Chưa kết nối';
+            document.getElementById('connectMetaMaskBtn').style.display = 'inline-flex';
+            document.getElementById('connectPhantomBtn').style.display = 'inline-flex';
+            document.getElementById('walletInfo').style.display = 'none';
+            document.getElementById('miningControls').style.display = 'none';
+            document.getElementById('walletAddress').textContent = '-';
+            document.getElementById('miningAddress').textContent = '-';
+            document.getElementById('networkName').textContent = '-';
+            document.getElementById('walletType').textContent = '-';
+            document.getElementById('claimMode').textContent = '-';
+            document.getElementById('maticBalance').textContent = '-';
+            document.getElementById('beerBalance').textContent = '0 BEER';
+        }
+
+        async function connectEvmWallet(provider, providerLabel) {
+            if (!provider) {
+                throw new Error(`${providerLabel} chưa được cài trong trình duyệt.`);
+            }
+
+            await switchToPolygon(provider);
+
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            if (!accounts || accounts.length === 0) {
+                throw new Error(`Không lấy được địa chỉ ví từ ${providerLabel}.`);
+            }
+
+            wallet.address = accounts[0];
+            wallet.provider = new Web3(provider);
+            wallet.connected = true;
+            wallet.providerType = providerLabel;
+            wallet.networkLabel = 'Polygon (Chain 137)';
+            wallet.canClaim = true;
+            wallet.pendingRewards = 0;
+
+            renderConnectedWallet();
+            await updateBalances();
+            await refreshOnChainRewards();
+            // Ghi nhận ví vào danh sách ngay khi kết nối
+            recordMiner(wallet.address, 0, 0, null, 'local');
+            renderMinerHistory();
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('hashRate').textContent = formatNumber(mining.hashRate);
+            document.getElementById('blocksFound').textContent = mining.blocksFound;
+            const localRewardAmount = mining.blocksFound * CONFIG.rewardPerBlock;
+            const rewardAmount = wallet.pendingRewards;
+            document.getElementById('localRewardAmount').textContent = formatBeerAmount(localRewardAmount);
+            document.getElementById('onChainRewardAmount').textContent = formatBeerAmount(rewardAmount);
+            document.getElementById('localRewardDetail').textContent = formatBeerAmount(localRewardAmount);
+            document.getElementById('onChainRewardDetail').textContent = formatBeerAmount(rewardAmount);
+            document.getElementById('submittedProofs').textContent = mining.submittedProofs;
+            document.getElementById('totalHashes').textContent = formatNumber(Number(mining.totalHashes));
+
+            // Update claim progress
+            document.getElementById('currentReward').textContent = formatBeerAmount(rewardAmount);
+            document.getElementById('claimProgressBar').style.width = rewardAmount > 0 ? '100%' : '0%';
+            document.getElementById('claimProgressBar').textContent = rewardAmount > 0 ? formatBeerAmount(rewardAmount) + ' BEER' : '';
+
+            if (rewardAmount > 0) {
+                document.getElementById('claimRequirement').className = 'claim-requirement reached';
+                document.getElementById('claimRequirement').innerHTML = `✅ Sẵn sàng claim! Bạn có <strong>${formatBeerAmount(rewardAmount)} BEER</strong> on-chain`;
+            } else {
+                document.getElementById('claimRequirement').className = 'claim-requirement not-reached';
+                document.getElementById('claimRequirement').innerHTML = `⏳ Chưa có rewards on-chain — hãy đào để tích lũy`;
+            }
+
+            if (mining.active) {
+                const elapsed = Math.floor((Date.now() - mining.startTime) / 1000);
+                const mins = Math.floor(elapsed / 60);
+                const secs = elapsed % 60;
+                document.getElementById('uptime').textContent = `${mins}m ${secs.toString().padStart(2, '0')}s`;
+            }
+
+            // Show claim button whenever there are any rewards
+            if (rewardAmount > 0 && wallet.canClaim) {
+                document.getElementById('claimBtn').classList.remove('hidden');
+                document.getElementById('claimBtn').disabled = false;
+            } else {
+                document.getElementById('claimBtn').classList.add('hidden');
+                document.getElementById('claimBtn').disabled = true;
+            }
+        }
+
+        // Update hash rate and on-chain rewards every second
+        setInterval(() => {
+            if (mining.active) {
+                const now = Date.now();
+                mining.lastUpdate = now;
+                // Cập nhật lastSeen của ví đang đào mỗi giây
+                if (wallet.address) {
+                    recordMiner(wallet.address, mining.blocksFound, mining.localRewards, null, 'local');
+                    renderMinerHistory();
+                }
+                updateUI();
+            }
+        }, 1000);
+
+        // Auto-refresh on-chain rewards and pool stats every 5 seconds
+        setInterval(() => {
+            refreshOnChainRewards();
+            updatePoolStats();
+        }, 5000);
+
+        // Refresh miner history list every 30 seconds
+        setInterval(() => {
+            refreshMinerHistory();
+        }, 30000);
+
+        // ====== WALLET FUNCTIONS ======
+        async function connectMetaMask() {
+            try {
+                if (window.location.protocol === 'file:') {
+                    throw new Error('Hãy mở trang bằng http://localhost:8888/beer_web_mining_v2.html thay vì mở file trực tiếp.');
+                }
+
+                log('🦊 Đang kết nối MetaMask...', 'warning');
+                const provider = getMetaMaskProvider();
+                await connectEvmWallet(provider, 'MetaMask');
+                log(`✅ MetaMask đã kết nối: ${wallet.address}`, 'success');
+            } catch (error) {
+                log(`❌ Kết nối MetaMask thất bại: ${error.message}`, 'error');
+                showMessage(`❌ MetaMask lỗi: ${error.message}`, 'error');
+            }
+        }
+
+        async function connectPhantomWallet() {
+            try {
+                if (window.location.protocol === 'file:') {
+                    throw new Error('Hãy mở trang bằng http://localhost:8888/beer_web_mining_v2.html thay vì mở file trực tiếp.');
+                }
+
+                const phantomEthereum = getPhantomEthereumProvider();
+                if (phantomEthereum) {
+                    log('👻 Đang kết nối Phantom EVM...', 'warning');
+                    await connectEvmWallet(phantomEthereum, 'Phantom EVM');
+                    log(`✅ Phantom EVM đã kết nối: ${wallet.address}`, 'success');
+                    return;
+                }
+
+                const phantomSolana = getPhantomSolanaProvider();
+                if (!phantomSolana) {
+                    throw new Error('Không tìm thấy Phantom. Hãy cài Phantom extension hoặc app browser.');
+                }
+
+                log('👻 Đang kết nối Phantom Solana...', 'warning');
+                const response = await phantomSolana.connect();
+                wallet.address = response.publicKey.toString();
+                wallet.provider = null;
+                wallet.connected = true;
+                wallet.providerType = 'Phantom Solana';
+                wallet.networkLabel = 'Solana';
+                wallet.canClaim = false;
+
+                renderConnectedWallet();
+                document.getElementById('maticBalance').textContent = 'N/A';
+                document.getElementById('beerBalance').textContent = 'Claim cần ví EVM';
+                wallet.pendingRewards = 0;
+                updateUI();
+                log(`✅ Phantom Solana đã kết nối: ${wallet.address}`, 'success');
+                showMessage('✅ Đã kết nối Phantom Solana. Bạn có thể mining cục bộ, nhưng claim cần ví EVM trên Polygon.', 'success');
+            } catch (error) {
+                log(`❌ Kết nối Phantom thất bại: ${error.message}`, 'error');
+                showMessage(`❌ Phantom lỗi: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateBalances() {
+            try {
+                if (!wallet.provider || !wallet.canClaim) {
+                    document.getElementById('maticBalance').textContent = 'N/A';
+                    return;
+                }
+
+                const maticBalance = await wallet.provider.eth.getBalance(wallet.address);
+                const maticFormatted = parseFloat(Web3.utils.fromWei(maticBalance, 'ether')).toFixed(4);
+                document.getElementById('maticBalance').textContent = maticFormatted + ' MATIC';
+
+                const beerBalance = await getBeerTokenContract(wallet.provider).methods.balanceOf(wallet.address).call();
+                document.getElementById('beerBalance').textContent = formatBeerAmount(weiToBeer(beerBalance)) + ' BEER';
+            } catch (error) {
+                console.error('Balance update error:', error);
+            }
+        }
+
+        async function refreshOnChainRewards() {
+            try {
+                if (!wallet.connected || !wallet.canClaim || !wallet.address) {
+                    wallet.pendingRewards = 0;
+                    updateUI();
+                    return;
+                }
+
+                const poolContract = getPoolContract(getReadOnlyWeb3());
+                const pendingRewards = await poolContract.methods.getPendingRewards(wallet.address).call();
+                wallet.pendingRewards = weiToBeer(pendingRewards);
+                updateUI();
+            } catch (error) {
+                log(`❌ Không đọc được pending rewards on-chain: ${error.message}`, 'error');
+            }
+        }
+
+        function calculateProofHash(nonce, minerAddress, blockNumber, timestamp) {
+            const hashHex = Web3.utils.soliditySha3(
+                { type: 'uint256', value: String(nonce) },
+                { type: 'string', value: minerAddress },
+                { type: 'uint256', value: String(blockNumber) },
+                { type: 'uint256', value: String(timestamp) },
+            );
+
+            return BigInt(hashHex);
+        }
+
+        async function submitProofToChain(nonce, hashRate, estimatedBlockNumber, estimatedTimestamp) {
+            if (!wallet.canClaim || !wallet.provider || mining.proofSubmissionInFlight) {
+                return;
+            }
+
+            mining.proofSubmissionInFlight = true;
+
+            try {
+                const poolContract = getPoolContract(wallet.provider);
+                const method = poolContract.methods.submitMiningProof(
+                    nonce,
+                    wallet.address,
+                    Math.max(1, Math.floor(hashRate || 1))
+                );
+
+                await method.estimateGas({ from: wallet.address });
+                log(`📤 Gửi proof on-chain. Nonce=${nonce}, block≈${estimatedBlockNumber}, ts≈${estimatedTimestamp}`, 'info');
+
+                const receipt = await method.send({ from: wallet.address });
+                mining.submittedProofs += 1;
+                log(`✅ Submit proof thành công! TX: ${receipt.transactionHash}`, 'success');
+                if (wallet.address) {
+                    recordMiner(wallet.address, mining.submittedProofs, mining.submittedProofs * CONFIG.rewardPerBlock, null, 'local');
+                    renderMinerHistory();
+                }
+                await updatePoolStats();
+                await updateBalances();
+                await refreshOnChainRewards();
+            } catch (error) {
+                log(`⚠️ Proof candidate không pass on-chain hoặc tx failed: ${error.message}`, 'warning');
+            } finally {
+                mining.proofSubmissionInFlight = false;
+                updateUI();
+            }
+        }
+
+        // ====== MINING FUNCTIONS ======
+        async function mineBlock() {
+            if (!mining.active) return;
+
+            const estimatedBlockNumber = Number(document.getElementById('poolBlock').textContent) || 0;
+            const estimatedTimestamp = Math.floor(Date.now() / 1000);
+            let nonce = Math.floor(Math.random() * 1000000000);
+
+            for (let i = 0; i < 100000; i++) {
+                const hashValue = calculateProofHash(nonce, wallet.address, estimatedBlockNumber, estimatedTimestamp);
+
+                mining.totalHashes += 1n;
+
+                if (hashValue < BigInt(CONFIG.difficultyTarget)) {
+                    mining.blocksFound++;
+                    mining.localRewards = mining.blocksFound * CONFIG.rewardPerBlock;
+                    log(`✅ Tìm thấy local proof #${mining.blocksFound}! Nonce: ${nonce}`, 'success');
+                    if (wallet.address) {
+                        recordMiner(wallet.address, mining.blocksFound, mining.localRewards, null, 'local');
+                        renderMinerHistory();
+                    }
+                    if (wallet.canClaim) {
+                        submitProofToChain(nonce, mining.hashRate, estimatedBlockNumber, estimatedTimestamp);
+                    }
+                    updateUI();
+                }
+
+                nonce++;
+
+                if ((i + 1) % 10000 === 0) {
+                    mining.hashRate = Number(mining.totalHashes) / ((Date.now() - mining.startTime) / 1000);
+                    updateUI();
+
+                    // Allow UI to update
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            // Continue mining
+            if (mining.active) {
+                setTimeout(mineBlock, 0);
+            }
+        }
+
+        function startMining() {
+            if (!wallet.connected) {
+                showMessage('❌ Vui lòng kết nối ví trước', 'error');
+                return;
+            }
+
+            mining.active = true;
+            mining.startTime = Date.now();
+            mining.lastUpdate = Date.now();
+            mining.totalHashes = 0n;
+            mining.blocksFound = 0;
+            mining.localRewards = 0;
+            mining.submittedProofs = 0;
+            mining.proofSubmissionInFlight = false;
+            mining.threads = parseInt(document.getElementById('threadCount').value) || 4;
+
+            // Đăng ký ví ngay khi bắt đầu đào
+            if (wallet.address) {
+                recordMiner(wallet.address, 0, 0, null, 'local');
+                renderMinerHistory();
+            }
+
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+            document.getElementById('walletStatus').className = 'status-badge status-mining';
+            document.getElementById('walletStatus').textContent = '⛏️ Đang đào...';
+
+            log(`🚀 Bắt đầu đào với ${mining.threads} luồng`, 'success');
+            log(`📊 Mục tiêu độ khó: ${CONFIG.difficultyTarget}`, 'info');
+            if (wallet.canClaim) {
+                log('ℹ️ Web miner đang thử submitMiningProof() on-chain bằng timestamp ước lượng. Vì contract dùng block.timestamp, một số proof local có thể bị reject khi lên chain.', 'warning');
+            }
+
+            mineBlock();
+        }
+
+        function stopMining() {
+            mining.active = false;
+
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('walletStatus').className = 'status-badge status-connected';
+            document.getElementById('walletStatus').textContent = '✅ 已连接';
+
+            const elapsed = Math.floor((Date.now() - mining.startTime) / 1000);
+            log(`⏹️ 停止挖矿`, 'warning');
+            log(`📈 耗时: ${elapsed}s | 哈希数: ${formatNumber(Number(mining.totalHashes))} | 块: ${mining.blocksFound}`, 'info');
+        }
+
+        // ====== REWARD FUNCTIONS ======
+        async function claimRewards() {
+            if (!wallet.connected) {
+                showMessage('❌ Bạn chưa kết nối ví!', 'error');
+                return;
+            }
+
+            if (!wallet.canClaim) {
+                showMessage('❌ Phantom Solana không thể claim BEER trên Polygon. Hãy dùng MetaMask hoặc Phantom EVM.', 'error');
+                return;
+            }
+
+            await refreshOnChainRewards();
+
+            const rewardAmount = wallet.pendingRewards;
+            const claimMinimum = 100;
+
+            if (rewardAmount < claimMinimum) {
+                showMessage(`❌ Bạn cần ${claimMinimum} BEER on-chain để claim. Hiện tại: ${formatBeerAmount(rewardAmount)} BEER`, 'error');
+                return;
+            }
+
+            try {
+                showMessage(`✅ Bạn sắp claim ${formatBeerAmount(rewardAmount)} BEER on-chain. Xác nhận trong ví.`, 'success');
+                log(`💰 Đang gửi transaction claim ${formatBeerAmount(rewardAmount)} BEER on-chain`, 'success');
+                log(`📍 Wallet: ${wallet.address}`, 'info');
+
+                const poolContract = getPoolContract(wallet.provider);
+                const receipt = await poolContract.methods.claimRewards().send({ from: wallet.address });
+
+                log(`✅ Claim thành công! TX: ${receipt.transactionHash}`, 'success');
+                log(`🔗 https://polygonscan.com/tx/${receipt.transactionHash}`, 'info');
+
+                await updateBalances();
+                await refreshOnChainRewards();
+                updateUI();
+                showMessage(`✅ Claim thành công! TX: ${receipt.transactionHash}`, 'success');
+
+            } catch (error) {
+                log(`❌ Claim thất bại: ${error.message}`, 'error');
+                showMessage('❌ Claim thất bại', 'error');
+            }
+        }
+
+        // ====== POOL STATS ======
+        async function updatePoolStats() {
+            try {
+                const poolContract = getPoolContract(getReadOnlyWeb3());
+                const stats = await poolContract.methods.getPoolStats().call();
+                document.getElementById('poolBlock').textContent = stats[0];
+                document.getElementById('poolMiners').textContent = stats[1];
+                document.getElementById('poolTotalBlocks').textContent = stats[2];
+                document.getElementById('poolRewards').textContent = formatBeerAmount(weiToBeer(stats[3]));
+            } catch (error) {
+                log(`❌ Không đọc được pool stats: ${error.message}`, 'error');
+            }
+        }
+
+        // ====== INITIALIZATION ======
+        window.addEventListener('load', () => {
+            resetWalletUI();
+            log('📡 Khởi tạo nền tảng mining v1.0...', 'info');
+            if (window.location.protocol === 'file:') {
+                log('⚠️ Bạn đang mở file trực tiếp. Để kết nối MetaMask hoặc Phantom, hãy chạy server local và mở bằng localhost.', 'warning');
+                showMessage('⚠️ Mở trang qua http://localhost:8888/beer_web_mining_v2.html để dùng MetaMask hoặc Phantom.', 'error');
+            }
+            updatePoolStats();
+            updateUI();
+            renderMinerHistory();
+            refreshMinerHistory();
+            log('✅ Hệ thống sẵn sàng', 'success');
+
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        resetWalletUI();
+                        updateUI();
+                        log('⚠️ Ví EVM đã ngắt kết nối', 'warning');
+                    } else if (accounts[0] !== wallet.address) {
+                        wallet.address = accounts[0];
+                        document.getElementById('walletAddress').textContent = wallet.address;
+                        document.getElementById('miningAddress').textContent = wallet.address;
+                        log(`🔄 Đã đổi ví sang: ${wallet.address}`, 'info');
+                        updateBalances();
+                        refreshOnChainRewards();
+                        syncMiningState();
+                    }
+                });
+            }
+
+            const phantomSolana = getPhantomSolanaProvider();
+            if (phantomSolana && typeof phantomSolana.on === 'function') {
+                phantomSolana.on('disconnect', () => {
+                    if (wallet.providerType === 'Phantom Solana') {
+                        resetWalletUI();
+                        updateUI();
+                        log('⚠️ Phantom Solana đã ngắt kết nối', 'warning');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

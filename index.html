@@ -987,7 +987,23 @@
         let minerRegistry = JSON.parse(localStorage.getItem(MINER_STORAGE_KEY) || '{}');
 
         function saveMinerRegistry() {
-            try { localStorage.setItem(MINER_STORAGE_KEY, JSON.stringify(minerRegistry)); } catch (_) {}
+            try {
+                // Merge với dữ liệu mới nhất từ localStorage trước khi ghi
+                // Tránh tab này ghi đè mất wallet của tab khác
+                const stored = JSON.parse(localStorage.getItem(MINER_STORAGE_KEY) || '{}');
+                for (const [addr, data] of Object.entries(stored)) {
+                    if (!minerRegistry[addr]) {
+                        minerRegistry[addr] = data;
+                    } else {
+                        const e = minerRegistry[addr];
+                        if (data.blocks > e.blocks) e.blocks = data.blocks;
+                        if (data.reward > e.reward) e.reward = data.reward;
+                        if (data.lastSeen > e.lastSeen) e.lastSeen = data.lastSeen;
+                        if (data.firstSeen < e.firstSeen) e.firstSeen = data.firstSeen;
+                    }
+                }
+                localStorage.setItem(MINER_STORAGE_KEY, JSON.stringify(minerRegistry));
+            } catch (_) {}
         }
 
         function recordMiner(address, blocks, rewardBeer, timestamp, source) {
@@ -1007,6 +1023,20 @@
         }
 
         function renderMinerHistory() {
+            // Đọc lại từ localStorage để thấy wallet từ các tab khác
+            const stored = JSON.parse(localStorage.getItem(MINER_STORAGE_KEY) || '{}');
+            for (const [addr, data] of Object.entries(stored)) {
+                if (!minerRegistry[addr]) {
+                    minerRegistry[addr] = data;
+                } else {
+                    const e = minerRegistry[addr];
+                    if (data.blocks > e.blocks) e.blocks = data.blocks;
+                    if (data.reward > e.reward) e.reward = data.reward;
+                    if (data.lastSeen > e.lastSeen) e.lastSeen = data.lastSeen;
+                    if (data.firstSeen < e.firstSeen) e.firstSeen = data.firstSeen;
+                }
+            }
+
             const list = document.getElementById('minerList');
             const entries = Object.entries(minerRegistry)
                 .sort((a, b) => b[1].lastSeen - a[1].lastSeen);
